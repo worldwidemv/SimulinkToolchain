@@ -1,3 +1,6 @@
 [submodule "ert_linux"]
 	path = ert_linux
 	url = git://rtime.felk.cvut.cz/ert_linux.git
+[submodule "SimulinkLib_linux64/LIB_RehaMove3"]
+	path = SimulinkLib_linux64/LIB_RehaMove3
+	url = https://github.com/worldwidemv/SimulinkBlock_RehaMove3.git
