@@ -1,0 +1,3 @@
+[submodule "ert_linux"]
+	path = ert_linux
+	url = git://rtime.felk.cvut.cz/ert_linux.git
