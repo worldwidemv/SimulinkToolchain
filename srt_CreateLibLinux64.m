@@ -23,148 +23,143 @@ BuildAllSfunctions = 1;
 BuildARMSfunctions = 0;
 
 if nargin < 1
+    LibList = {};
+else
     if ~iscell(LibList)
         error('srt_CreateLibLinux64: LibList Argument has to be a cell array! E.g. LibList = {''Lib1'',''Lib2''}');
     end
 end
 
-% Save current dir and cd to script dir
+%% Save current dir and cd to script dir
 startcreatelibdir = pwd ;
 cd(fileparts(mfilename('fullpath')));
 
 %% Create log file and delete old contents
-fclose(fopen('SRT_ErrorLogs/build.log','w'));
+fclose(fopen('BuildLogs/build.log','w'));
 
 % Besides the Error Log file, also a diary is created which logs all output
-log_name = ['srt_CreateLib_All_Output_' datestr(now,'yyyymmddHHMMSS') '.log'];
-diary(['SRT_ErrorLogs/',log_name]);
+log_name = ['createLib_' datestr(now,'yyyymmddHHMMSS') '__All.log'];
+diary(['BuildLogs/',log_name]);
 diary on;
+fprintf('Building the Simulink Soft-Realtime toolbox ....\n\n');
 
-% add functions directory to the path
+% Add functions directory to the path
 addpath(fullfile(pwd, 'Matlab_LibFunctions'));
 
-cd 'SimulinkLib_linux64';
-
 %% Create a list with all the library folders (all folders starting with 'Lib_')
-libDirs = {};
-noLibs = 0;
+cd('SimulinkLib_linux64');
 
-for i = 1:length(LibList)
-    if length(LibList{i}) > 4
-        if strcmp(LibList{i}(1:4), 'LIB_')
-            noLibs = noLibs + 1;
-            libDirs{noLibs} = LibList{i};
-        end
-    end
+if (isempty(LibList))
+    dirList = dir(['.', filesep, 'LIB_*']);
+    LibList = { dirList.name };
 end
 
-%% Create Main Control Lib
-
-% simulink;
-delete('srt_control.slx');
-close_system('srt_control',0);
-new_system('srt_control', 'Library');
 
 
 %% Create List of all Libraries by cycling through sub-directories
-LibraryList = cell(0);
-LibraryPathList = cell(0);
-counter = 0;
-for DirNo = 1:length(libDirs)
-   if exist(libDirs{DirNo}, 'dir') > 0 %check if directory exists
-       subLibs = dir([libDirs{DirNo}, '/*.slx']);
-       subLibs = {subLibs.name};
-       for LibNo = 1:length(subLibs)
-           counter = counter + 1;
-           LibName = strrep(subLibs{LibNo}, '.slx', '');
-           LibraryList{counter} = LibName;
-           LibraryPathList{counter} = libDirs{DirNo};
+LibraryList = {};
+for iDir = 1:length(LibList)
+    % check if directory exists and starts with LIB_
+    if (isdir(LibList{iDir}) && (length(LibList{iDir}) > 4) && strcmp(LibList{iDir}(1:4), 'LIB_'))
+       simFiles = dir([LibList{iDir}, '/*.slx']);
+       simFiles = {simFiles.name};
+       for iSubLib = 1:length(simFiles)
+           LibName = strrep(simFiles{iSubLib}, '.slx', '');
+           LibraryList{end +1}.name = LibName;
+           LibraryList{end}.path = LibList{iDir};
        end
-       
-       if length(subLibs) > 0
-           % Add to Matlab path
-           addpath([pwd, '/', libDirs{DirNo}]);
-       end
-       
    else
-       disp(['Error: Directory ', libDirs{DirNo},' does not exist']);
+       warning('Error: Directory "%s" is not valid!', LibList{iDir});
    end
 end
 
+%% Close Main Control Lib
+delete('srt_control_lib.slx');
+close_system('srt_control_lib',0);
+
+%% Build all S-Functions
+if (BuildAllSfunctions)
+    for iLib = 1:length(LibraryList)
+       cd(LibraryList{iLib}.path);
+       
+       mFiles = dir('*.m');
+       mFiles = {mFiles.name};
+       for iMfile = 1:length(mFiles)
+           % check if the filname contains build -> must be build script
+           if contains(mFiles{iMfile},'build','IgnoreCase',true)
+               % check if the filname contains arm or ARM for the arm platform
+               if contains(mFiles{iMfile},'arm','IgnoreCase',true)
+                   if (BuildARMSfunctions)
+                       fprintf('\n** %s ARM ******************************************\n\n', LibraryList{iLib}.name);
+                       run(mFiles{iMfile}); %run ARM build script
+                   end
+               else
+                   fprintf('\n** %s **********************************************\n\n', LibraryList{iLib}.name);
+                   run(mFiles{iMfile}); %run build script
+               end
+           end
+       end
+       
+       cd('..');
+    end
+end
+fprintf('\n************************************************\n\n');
+
+%% Create Main Control Lib
+% get the SRT configuration
+srtConfig = xsrt_getSetup();
+new_system('srt_control_lib', 'Library');
 
 %% Load Libraries into control Library
-
-for i = 1:length(LibraryList)
+for iLib = 1:length(LibraryList)
     %Load Library
-    load_system([LibraryPathList{i},'/',LibraryList{i},'.slx']);
+    load_system([LibraryList{iLib}.path, filesep , srtConfig.lctConfig.sfuncFolderName, filesep, LibraryList{iLib}.name,'.slx']);
     
     %Find Blocks in Library
-    src_blocks = find_system(LibraryList{i},'SearchDepth',1,'type','block');
+    src_blocks = find_system(LibraryList{iLib}.name,'SearchDepth',1,'type','block');
     
     %Add empty Subsystem for Sublibrary
-    add_block('built-in/SubSystem', ['srt_control/',LibraryList{i}], 'Position', [100*i 50 (100*i+50) 100]); 
+    add_block('built-in/SubSystem', ['srt_control_lib/',LibraryList{iLib}.name], 'Position', [100*iLib 50 (100*iLib+50) 100]); 
     for j = 1:length(src_blocks)
-        dest_blocks = ['srt_control/', src_blocks{j}];
+        dest_blocks = ['srt_control_lib/', src_blocks{j}];
         add_block(src_blocks{j}, dest_blocks);
     end
-    close_system([LibraryPathList{i},'/',LibraryList{i},'.slx']);
+    close_system([LibraryList{iLib}.path, filesep , srtConfig.lctConfig.sfuncFolderName, filesep, LibraryList{iLib}.name,'.slx']);
 end
 
-
 %% Save and Close New Library
-set_param('srt_control','EnableLBRepository','on'); % TODO verify
-save_system('srt_control');
-close_system('srt_control');
+set_param('srt_control_lib','EnableLBRepository','on'); % TODO verify
+save_system('srt_control_lib');
+close_system('srt_control_lib');
 
 %% Add Matlab path of the new library srt_control.slx
 addpath(pwd); %Add This Path
 
 
 
-%% Build all S-Functions
-if BuildAllSfunctions == 1
-    for DirNo = 1:length(libDirs)
-       cd(libDirs{DirNo});
-       subLibs = dir('*.m');
-       subLibs = {subLibs.name};
-       for i = 1:length(subLibs)
-           if length(strfind(subLibs{i},'build')) > 0 % filname contains build -> must be build script
-               if (length(strfind(subLibs{i},'ARM')) > 0) || (length(strfind(subLibs{i},'arm')) > 0)
-                   if BuildARMSfunctions == 1
-                       run(subLibs{i}); %run ARM build script
-                   end
-               else
-                   run(subLibs{i}); %run build script
-               end
-           end
-       end
-       cd('..');
-    end
-end
-
-
 %% Create documentation
 %cd('..'); % back to simulink_libraries-folder
 % create all necessary documentation files
-%createDocumentation(LibraryList,LibraryPathList);
-
+%createDocumentation(LibraryList.name, LibraryList.path);
 % remove path
 %rmpath(genpath([pwd, '/Documentation']));
-
 % addpath with subfolders to generate the help 
 %addpath(genpath([pwd, '/Documentation']));
 
 %% Save all added pathes
-savepath;
+savepath();
+fprintf('\n\n');
+fprintf('Building the Simulink Soft-Realtime toolbox is done!\n\n');
+cd('..');
 
 %% Rename log file to add date and time
-cd ..
-newlogname = ['build_' datestr(now,'yyyymmddHHMMSS') '.log'];
-movefile('SRT_ErrorLogs/build.log',['SRT_ErrorLogs/' newlogname]);
-fprintf('\n\n\n');
-fprintf('*********************************************\n');
-fprintf('srt_CreateLibLinux64: The following errors occurred (also see: Error_Logs/%s):\n\n',newlogname);
-type(['SRT_ErrorLogs/' newlogname]);
+newlogname = ['createLib_' datestr(now,'yyyymmddHHMMSS') '__Errors.log'];
+movefile('BuildLogs/build.log',['BuildLogs/' newlogname]);
+errorText = fileread(['BuildLogs/' newlogname]);
+if (~isempty(errorText))
+    fprintf('srt_CreateLibLinux64: The following errors occurred (also see: BuildLogs/%s):\n\n',newlogname);
+    disp(errorText);
+end
 diary off;
 
 

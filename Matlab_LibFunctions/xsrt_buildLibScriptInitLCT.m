@@ -20,9 +20,10 @@ function [startDir, libDir, sfuncFolderName, srtAddPath, defs]=xsrt_buildLibScri
     cd(libDir);
 
     %% Create the sfunc folder, where all S-functions will be generated
-    if (~isdir(srtConfig.lctConfig.sfuncFolderName))
+    if (~isdir(['.', filesep, srtConfig.lctConfig.sfuncFolderName]))
         mkdir(srtConfig.lctConfig.sfuncFolderName);
-    end 
+    end
+    delete([srtConfig.lctConfig.sfuncFolderName, filesep, '*']);
     sfuncFolderName = srtConfig.lctConfig.sfuncFolderName;
 
     %% Initialize SRT structure
