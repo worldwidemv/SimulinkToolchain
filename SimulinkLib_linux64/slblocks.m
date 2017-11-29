@@ -4,7 +4,7 @@ function blkStruct = slblocks
 		% and be cached in the browser repository
 
 		% the name of the library
-		Browser.Library = 'srt_control_lib';
+		Browser.Library = 'xsrt_control_lib';
 
 		% the library name that appears in the Library Browser
 		Browser.Name = 'Soft-Realtime Simulink Toolbox - Available Blocks';
