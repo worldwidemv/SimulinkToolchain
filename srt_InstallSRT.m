@@ -87,14 +87,13 @@ if (doAbort)
 end
 fprintf('\n\n====================================================================\nRunning the build scripts now. You can run the build script also with the "srt_CreateLib" command.\n\n');
 
+LibNames = {};
 for iLib = 1:length(LibraryList)
     if (LibraryList{iLib}.runBuildScript)
-        cd([LibraryList{iLib}.path, filesep, LibraryList{iLib}.name]);
-        fprintf('\n### Running build script for "%s": %s\n', LibraryList{iLib}.name, LibraryList{iLib}.buildScript);
-        run(LibraryList{iLib}.buildScript);
-        fprintf('\n');
+        LibNames{end+1} = LibraryList{iLib}.name;
     end
 end
+srt_CreateLib(LibNames);
 cd(startDirInstall);
 
 fprintf('\n\n====================================================================\nThe installation of the Soft-Realtime Simulink Toolbox is done.\n\nYou can run the build script again with the "srt_CreateLib" command (necessary after upgrades)!\n\n');
