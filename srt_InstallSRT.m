@@ -30,9 +30,9 @@ LibraryList = {};
 
 for iDir = 1:length(dirList)
     % check if directory exists and starts with LIB_
-    if (isdir([dirList(iDir).folder, filesep, dirList(iDir).name]))
+    if (isdir(['SimulinkLib_linux64', filesep, dirList(iDir).name]))
         LibraryList{end +1}.name = dirList(iDir).name;
-        LibraryList{end}.path = dirList(iDir).folder;
+        LibraryList{end}.path = [pwd, filesep, 'SimulinkLib_linux64'];
         
         LibraryList{end}.buildScript = '';
         LibraryList{end}.installScript = '';
@@ -51,7 +51,7 @@ for iDir = 1:length(dirList)
             end
         end
         % was this Lib already installed?
-        if (exist([dirList(iDir).folder, filesep, dirList(iDir).name, filesep, '.installDone'], 'file'))
+        if (exist([LibraryList{end}.path, filesep, dirList(iDir).name, filesep, '.installDone'], 'file'))
             LibraryList{end}.installed = true;
         else
             LibraryList{end}.installed = false;
