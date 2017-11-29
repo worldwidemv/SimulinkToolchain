@@ -57,10 +57,10 @@ if (isempty(LibList))
     temp = {};
     for iDir = 1:length(dirList)
         % check if directory exists and starts with LIB_
-        if (isdir([dirList(iDir).folder, filesep, dirList(iDir).name]))
+        if (isdir(['.', filesep, dirList(iDir).name]))
             temp{end +1}.name = dirList(iDir).name;
             % was this Lib already installed?
-            if (exist([dirList(iDir).folder, filesep, dirList(iDir).name, filesep, '.installDone'], 'file'))
+            if (exist(['.', filesep, dirList(iDir).name, filesep, '.installDone'], 'file'))
                 temp{end}.installed = true;
             else
                 temp{end}.installed = false;
@@ -113,9 +113,9 @@ if (BuildAllSfunctions)
        mFiles = {mFiles.name};
        for iMfile = 1:length(mFiles)
            % check if the filname contains build -> must be build script
-           if contains(mFiles{iMfile},'build','IgnoreCase',true)
+           if my_contains(mFiles{iMfile},'build','IgnoreCase',true)
                % check if the filname contains arm or ARM for the arm platform
-               if contains(mFiles{iMfile},'arm','IgnoreCase',true)
+               if my_contains(mFiles{iMfile},'arm','IgnoreCase',true)
                    if (BuildARMSfunctions)
                        fprintf('\n** %s ARM ***************************\n', LibraryList{iLib}.name);
                        run(mFiles{iMfile}); %run ARM build script

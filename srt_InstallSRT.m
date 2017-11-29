@@ -40,12 +40,12 @@ for iDir = 1:length(dirList)
         mFiles = {mFiles.name};
         for iMfile = 1:length(mFiles)
             % check if the filname contains build -> must be build script
-            if contains(mFiles{iMfile},'build_','IgnoreCase',true)
+            if my_contains(mFiles{iMfile},'build_','IgnoreCase',true)
                 LibraryList{end}.buildScript = mFiles{iMfile};
                 continue;
             end
             % check if the filname contains install -> must be install script
-            if contains(mFiles{iMfile},'install_','IgnoreCase',true)
+            if my_contains(mFiles{iMfile},'install_','IgnoreCase',true)
                 LibraryList{end}.installScript = mFiles{iMfile};
                 continue;
             end
