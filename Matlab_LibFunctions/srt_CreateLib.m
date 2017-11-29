@@ -1,5 +1,5 @@
-function [] = srt_CreateLibLinux64(LibList)
-% TEMP solution to build the SRT modules ...
+function [] = srt_CreateLib(LibList)
+%SRT_CREATELIB is used to build the SRT simulink modules
 %
 % srt_CreateLib(LibList) creates the simulink modules for the Soft-Realtime Toolbox (SRT)
 %
@@ -33,6 +33,7 @@ end
 %% Save current dir and cd to script dir
 startcreatelibdir = pwd ;
 cd(fileparts(mfilename('fullpath')));
+cd ('..');
 
 %% Create log file and delete old contents
 fclose(fopen('BuildLogs/build.log','w'));
@@ -51,7 +52,30 @@ cd('SimulinkLib_linux64');
 
 if (isempty(LibList))
     dirList = dir(['.', filesep, 'LIB_*']);
-    LibList = { dirList.name };
+    
+    %% Create List of all Libraries by cycling through sub-directories
+    temp = {};
+    for iDir = 1:length(dirList)
+        % check if directory exists and starts with LIB_
+        if (isdir([dirList(iDir).folder, filesep, dirList(iDir).name]))
+            temp{end +1}.name = dirList(iDir).name;
+            % was this Lib already installed?
+            if (exist([dirList(iDir).folder, filesep, dirList(iDir).name, filesep, '.installDone'], 'file'))
+                temp{end}.installed = true;
+            else
+                temp{end}.installed = false;
+            end
+        end
+    end
+    % update the list what to install
+    [temp, doAbort] = xsrt_getBuildUI(temp);
+    if (doAbort), return; end
+    LibList = {};
+    for iDir = 1:length(temp)
+        if (temp{iDir}.runBuildScript)
+            LibList{end +1} = temp{iDir}.name;
+        end
+    end
 end
 
 
@@ -74,11 +98,14 @@ for iDir = 1:length(LibList)
 end
 
 %% Close Main Control Lib
-delete('srt_control_lib.slx');
-close_system('srt_control_lib',0);
+fprintf('   -> Closing the Simulink library (this can take a while) ... ');
+delete('xsrt_control_lib.slx');
+close_system('xsrt_control_lib',0);
+fprintf(' done\n');
 
 %% Build all S-Functions
 if (BuildAllSfunctions)
+    fprintf('   -> Running the individual build scripts ...\n');
     for iLib = 1:length(LibraryList)
        cd(LibraryList{iLib}.path);
        
@@ -90,11 +117,11 @@ if (BuildAllSfunctions)
                % check if the filname contains arm or ARM for the arm platform
                if contains(mFiles{iMfile},'arm','IgnoreCase',true)
                    if (BuildARMSfunctions)
-                       fprintf('\n** %s ARM ******************************************\n\n', LibraryList{iLib}.name);
+                       fprintf('\n** %s ARM ***************************\n', LibraryList{iLib}.name);
                        run(mFiles{iMfile}); %run ARM build script
                    end
                else
-                   fprintf('\n** %s **********************************************\n\n', LibraryList{iLib}.name);
+                   fprintf('\n** %s *******************************\n', LibraryList{iLib}.name);
                    run(mFiles{iMfile}); %run build script
                end
            end
@@ -108,7 +135,7 @@ fprintf('\n************************************************\n\n');
 %% Create Main Control Lib
 % get the SRT configuration
 srtConfig = xsrt_getSetup();
-new_system('srt_control_lib', 'Library');
+new_system('xsrt_control_lib', 'Library');
 
 %% Load Libraries into control Library
 for iLib = 1:length(LibraryList)
@@ -119,18 +146,18 @@ for iLib = 1:length(LibraryList)
     src_blocks = find_system(LibraryList{iLib}.name,'SearchDepth',1,'type','block');
     
     %Add empty Subsystem for Sublibrary
-    add_block('built-in/SubSystem', ['srt_control_lib/',LibraryList{iLib}.name], 'Position', [100*iLib 50 (100*iLib+50) 100]); 
+    add_block('built-in/SubSystem', ['xsrt_control_lib/',LibraryList{iLib}.name], 'Position', [100*iLib 50 (100*iLib+50) 100]); 
     for j = 1:length(src_blocks)
-        dest_blocks = ['srt_control_lib/', src_blocks{j}];
+        dest_blocks = ['xsrt_control_lib/', src_blocks{j}];
         add_block(src_blocks{j}, dest_blocks);
     end
     close_system([LibraryList{iLib}.path, filesep , srtConfig.lctConfig.sfuncFolderName, filesep, LibraryList{iLib}.name,'.slx']);
 end
 
 %% Save and Close New Library
-set_param('srt_control_lib','EnableLBRepository','on'); % TODO verify
-save_system('srt_control_lib');
-close_system('srt_control_lib');
+set_param('xsrt_control_lib','EnableLBRepository','on'); % TODO verify
+save_system('xsrt_control_lib');
+close_system('xsrt_control_lib');
 
 %% Add Matlab path of the new library srt_control.slx
 addpath(pwd); %Add This Path
@@ -148,7 +175,7 @@ addpath(pwd); %Add This Path
 
 %% Save all added pathes
 savepath();
-fprintf('\n\n');
+fprintf('\n');
 fprintf('Building the Simulink Soft-Realtime toolbox is done!\n\n');
 cd('..');
 
