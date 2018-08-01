@@ -17,12 +17,12 @@ h = (90 +nLibs*hLib);
 gfig = groot();
 x = (gfig.ScreenSize(3)-540)/2;
 y = (gfig.ScreenSize(4)-h)/2;
-CD = dialog('Position',[x y 540 h],'Name','Select which block libraries to install.');
+CD = dialog('Position',[x y 740 h],'Name','Select which block libraries to install.');
 
 yOffset = h -40;
 xOffset = 20;
 nText = uicontrol('Parent', CD,'Style', 'text', 'String', 'Select which Block Libraries to Install:', 'HorizontalAlignment', 'left',...
-    'Position', [xOffset, yOffset, 500, 20], 'FontWeight', 'bold');
+    'Position', [xOffset, yOffset, 700, 20], 'FontWeight', 'bold');
 
 yOffset = h -70;
 cbLibs = {};
@@ -35,13 +35,13 @@ for iLib = 1:nLibs
         defaultSel = true;
     end
     cbLibs{end+1} = uicontrol('Parent', CD,'Style', 'radiobutton', 'String', textTemp, 'Value', defaultSel, 'Max', 1, 'FontName', 'FixedWidth', ...
-        'Position', [xOffset, yOffset, 520, 25]);
+        'Position', [xOffset, yOffset, 720, 25]);
          yOffset = yOffset -30;
 end
 
 xOffset = 0;
-btnAbort = uicontrol('Parent',CD, 'Position',[20+xOffset,  10, 230, 25], 'String','Abort', 'HorizontalAlignment', 'center', 'Callback','delete(gcf)');
-btnClose = uicontrol('Parent',CD, 'Position',[290+xOffset, 10, 230, 25], 'String','Install the Block Libraries', 'HorizontalAlignment', 'center', 'Callback',@cb_SetInstallState);
+btnAbort = uicontrol('Parent',CD, 'Position',[120+xOffset,  10, 230, 25], 'String','Abort', 'HorizontalAlignment', 'center', 'Callback','delete(gcf)');
+btnClose = uicontrol('Parent',CD, 'Position',[390+xOffset, 10, 230, 25], 'String','Install the Block Libraries', 'HorizontalAlignment', 'center', 'Callback',@cb_SetInstallState);
 
 % Wait for d to close before running to completion
 doAbort = true;

@@ -36,7 +36,8 @@ function [ successful ]=xsrt_buildLibScriptEndLCT(startDir, libDir, libName, sfu
         disp(msgString);
         warnString = ['ERROR DURING COMPILATION OF LIB_', libName, ' PALLET'];
         warning(warnString);
-        fid = fopen('../../../SRT_ErrorLogs/build.log','a');
+        cd(fileparts(mfilename('fullpath')));
+        fid = fopen('../BuildLogs/build.log','a');
         fprintf(fid, '\n%s\n%s\n', warnString, msgString);
         fclose(fid);
         cd(startDir);
