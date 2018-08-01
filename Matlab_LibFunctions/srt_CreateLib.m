@@ -42,16 +42,20 @@ fclose(fopen('BuildLogs/build.log','w'));
 log_name = ['createLib_' datestr(now,'yyyymmddHHMMSS') '__All.log'];
 diary(['BuildLogs/',log_name]);
 diary on;
-fprintf('Building the Simulink Soft-Realtime toolbox ....\n\n');
+fprintf('Building the "Soft-Realtime Simulink Toolbox" ....\n\n');
 
 % Add functions directory to the path
 addpath(fullfile(pwd, 'Matlab_LibFunctions'));
 
 %% Create a list with all the library folders (all folders starting with 'Lib_')
 cd('SimulinkLib_linux64');
+SimulinkLibDir = pwd();
 
 if (isempty(LibList))
-    dirList = dir(['.', filesep, 'LIB_*']);
+    dirList_LIB = dir(['.', filesep, 'LIB_*']);
+    dirList_SB = dir(['.', filesep, 'SimulinkBlock_*']);
+    dirList = dirList_LIB;
+    dirList( length(dirList_LIB)+1 : length(dirList_LIB)+length(dirList_SB) ) = dirList_SB;
     
     %% Create List of all Libraries by cycling through sub-directories
     temp = {};
@@ -83,8 +87,9 @@ end
 %% Create List of all Libraries by cycling through sub-directories
 LibraryList = {};
 for iDir = 1:length(LibList)
-    % check if directory exists and starts with LIB_
-    if (isdir(LibList{iDir}) && (length(LibList{iDir}) > 4) && strcmp(LibList{iDir}(1:4), 'LIB_'))
+    % check if directory exists and starts with LIB_ or SimulinkBlock_
+    if (isdir(LibList{iDir}) && (length(LibList{iDir}) > 4) && ...
+            ( strcmp(LibList{iDir}(1:4), 'LIB_') || strcmp(LibList{iDir}(1:14), 'SimulinkBlock_') ))
        simFiles = dir([LibList{iDir}, '/*.slx']);
        simFiles = {simFiles.name};
        for iSubLib = 1:length(simFiles)
@@ -99,7 +104,9 @@ end
 
 %% Close Main Control Lib
 fprintf('   -> Closing the Simulink library (this can take a while) ... ');
-delete('xsrt_control_lib.slx');
+if (exist('xsrt_control_lib.slx', 'file'))
+    delete('xsrt_control_lib.slx');
+end
 close_system('xsrt_control_lib',0);
 fprintf(' done\n');
 
@@ -107,6 +114,7 @@ fprintf(' done\n');
 if (BuildAllSfunctions)
     fprintf('   -> Running the individual build scripts ...\n');
     for iLib = 1:length(LibraryList)
+       cd(SimulinkLibDir);
        cd(LibraryList{iLib}.path);
        
        mFiles = dir('*.m');
@@ -130,6 +138,7 @@ if (BuildAllSfunctions)
        cd('..');
     end
 end
+cd(SimulinkLibDir);
 fprintf('\n************************************************\n\n');
 
 %% Create Main Control Lib
@@ -176,7 +185,7 @@ addpath(pwd); %Add This Path
 %% Save all added pathes
 savepath();
 fprintf('\n');
-fprintf('Building the Simulink Soft-Realtime toolbox is done!\n\n');
+fprintf('Building the "Soft-Realtime Simulink Toolbox" is done!\n\n');
 cd('..');
 
 %% Rename log file to add date and time
@@ -184,7 +193,7 @@ newlogname = ['createLib_' datestr(now,'yyyymmddHHMMSS') '__Errors.log'];
 movefile('BuildLogs/build.log',['BuildLogs/' newlogname]);
 errorText = fileread(['BuildLogs/' newlogname]);
 if (~isempty(errorText))
-    fprintf('srt_CreateLibLinux64: The following errors occurred (also see: BuildLogs/%s):\n\n',newlogname);
+    fprintf('srt_CreateLib: The following errors occurred (also see: BuildLogs/%s):\n\n',newlogname);
     disp(errorText);
 end
 diary off;

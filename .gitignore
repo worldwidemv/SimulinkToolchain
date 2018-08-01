@@ -1,3 +1,8 @@
+# Project specific
+xsrt_control_lib.slx
+BuildLogs/*.log
+
+
 ## Linux / Dolpin
 .directory
 

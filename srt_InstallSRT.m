@@ -25,11 +25,14 @@ addpath('Matlab_LibFunctions');
 
 
 %% Create List of all Libraries by cycling through sub-directories
-dirList = dir(['SimulinkLib_linux64', filesep, 'LIB_*']);
+dirList_LIB = dir(['SimulinkLib_linux64', filesep, 'LIB_*']);
+dirList_SB = dir(['SimulinkLib_linux64', filesep, 'SimulinkBlock_*']);
+dirList = dirList_LIB;
+dirList( length(dirList_LIB)+1 : length(dirList_LIB)+length(dirList_SB) ) = dirList_SB;
 LibraryList = {};
 
 for iDir = 1:length(dirList)
-    % check if directory exists and starts with LIB_
+    % check if directory exists
     if (isdir(['SimulinkLib_linux64', filesep, dirList(iDir).name]))
         LibraryList{end +1}.name = dirList(iDir).name;
         LibraryList{end}.path = [pwd, filesep, 'SimulinkLib_linux64'];
@@ -82,7 +85,7 @@ cd(startDirInstall);
 % update the list what to install
 [LibraryList, doAbort] = xsrt_getBuildUI(LibraryList);
 if (doAbort)
-    fprintf('\n\n====================================================================\nThe installation of the Soft-Realtime Simulink Toolbox is done.\n\nYou must run the build script with the "srt_CreateLib" command!\n\n');
+    fprintf('\n\n====================================================================\nThe installation of the "Soft-Realtime Simulink Toolbox" is done.\n\nYou must run the build script with the "srt_CreateLib" command!\n\n');
     return;
 end
 fprintf('\n\n====================================================================\nRunning the build scripts now. You can run the build script also with the "srt_CreateLib" command.\n\n');
@@ -96,4 +99,4 @@ end
 srt_CreateLib(LibNames);
 cd(startDirInstall);
 
-fprintf('\n\n====================================================================\nThe installation of the Soft-Realtime Simulink Toolbox is done.\n\nYou can run the build script again with the "srt_CreateLib" command (necessary after upgrades)!\n\n');
+fprintf('\n====================================================================\nThe installation of the "Soft-Realtime Simulink Toolbox" is done.\n\nYou can run the build script again with the "srt_CreateLib" command (necessary after upgrades)!\n\n');

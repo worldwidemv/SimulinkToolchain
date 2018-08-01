@@ -1,6 +1,6 @@
 # Simulink Toolchain for Soft-Realtime
 
-This repository holds the basic structure and, some utility scripts of the Soft-Realtime Toolbox for Simulink.  
+This repository holds the basic structure and, some utility scripts of the Soft-Realtime Simulink Toolbox (SRT).  
 This toolbox allows you to compile a Simulink diagram into a Linux executable which uses nano-sleep to ensure [better real-time behaviour](http://rtime.felk.cvut.cz/publications/public/ert_linux.pdf).
 
 This is done by the external **ERT_Linux target** for the Simulink Embeded Coder, which can be found here:
@@ -15,9 +15,10 @@ ERT_linux and the actual Simulink blocks, which use the Soft-Realtime provided b
 The current version requires a Linux 64 bit operating system (e.g. Ubuntu 16.04).
 Besides Matlab and Simulink, the following toolboxes are required:  
 
-* Simulink Coder
-* Embedded Coder
-* (MATLAB Coder)
+   * [Simulink](https://www.mathworks.com/products/simulink.html) + Legacy Code Toolbox,
+   * [Simulink Coder](https://www.mathworks.com/products/simulink-coder.html),
+   * [Embedded Coder](https://www.mathworks.com/products/embedded-coder.html), and
+   * (MATLAB Coder)
 
 This toolchain is tested with Matlab 2014b and Maltab 2016b but should run with other versions too.  
 
@@ -25,9 +26,9 @@ This toolchain is tested with Matlab 2014b and Maltab 2016b but should run with 
 
 You must use:
 
-    git clone --recursive https://github.com/worldwidemv/SimulinkToolchain.git SRT_repo
+    git clone --recursive https://github.com/worldwidemv/SimulinkToolchain.git
 
-Otherwise the submodules will not be included and must be manually added by you. But you can change "SRT_repo" of course ;-).
+Otherwise the submodules will not be included and must be manually added by you.
 
 Inside the main directory is the install script `srt_InstallSRT.m`, which must be run with Matlab.
 This script should generate a working setup with the new entry  
@@ -38,7 +39,14 @@ Please have a look at the [documentation](https://github.com/worldwidemv/Simulin
 
 ## Usage / Documentation
 
-The toolchain it self has very little end-user functionality. Only the function `srt_CreateLib([Cell_with_FolderNames])` is useful to end-user to rebuild the Simulink library, e.g. after updates.
+The toolchain it self has very little end-user functionality. Only the function in the _srt\_*_ namespace, like
+
+* `srt_CreateLib()` or
+* `srt_CreateLib([Cell_with_FolderNames])`, and
+* `srt_InstallSRT()`
+
+are useful to end-users to rebuild the Simulink library, e.g. after updates.  
+However, the internal helper functions (namespace _xsrt\__) are needed be the custom Simulink block, e.g. the Simulink block for the Hasomed [RehaMove3](https://github.com/worldwidemv/SimulinkBlock_RehaMove3).
 
 The full documentation can be found in the [Wiki](https://github.com/worldwidemv/SimulinkToolchain/wiki).
 

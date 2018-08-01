@@ -17,12 +17,12 @@ h = (90 +nLibs*hLib);
 gfig = groot();
 x = (gfig.ScreenSize(3)-500)/2;
 y = (gfig.ScreenSize(4)-h)/2;
-CD = dialog('Position',[x y 500 h],'Name','Select which block libraries to setup.');
+CD = dialog('Position',[x y 700 h],'Name','Select which Library/Block  to setup');
 
 yOffset = h -40;
 xOffset = 20;
-nText = uicontrol('Parent', CD,'Style', 'text', 'String', 'Select which Block Libraries to Setup:', 'HorizontalAlignment', 'left',...
-    'Position', [xOffset, yOffset, 400, 20], 'FontWeight', 'bold');
+nText = uicontrol('Parent', CD,'Style', 'text', 'String', 'Select which Library/Block to Setup:', 'HorizontalAlignment', 'left',...
+    'Position', [xOffset, yOffset, 600, 20], 'FontWeight', 'bold');
 
 yOffset = h -70;
 cbLibs = {};
@@ -31,14 +31,14 @@ for iLib = 1:nLibs
         textTemp = ['run the build script for ', LibraryList{iLib}.name,];
         defaultSel = true;
         cbLibs{iLib} = uicontrol('Parent', CD,'Style', 'radiobutton', 'String', textTemp, 'Value', defaultSel, 'Max', 1, 'FontName', 'FixedWidth', ...
-            'Position', [xOffset, yOffset, 450, 25]);
+            'Position', [xOffset, yOffset, 650, 25]);
         yOffset = yOffset -30;
     end
 end
 
 xOffset = 0;
-btnAbort = uicontrol('Parent',CD, 'Position',[20+xOffset,  10, 210, 25], 'String','Skip the Setup', 'HorizontalAlignment', 'center', 'Callback','delete(gcf)');
-btnClose = uicontrol('Parent',CD, 'Position',[250+xOffset, 10, 210, 25], 'String','Run the Build Scripts now', 'HorizontalAlignment', 'center', 'Callback',@cb_SetBuildState);
+btnAbort = uicontrol('Parent',CD, 'Position',[120+xOffset, 10, 210, 25], 'String','Skip the Setup', 'HorizontalAlignment', 'center', 'Callback','delete(gcf)');
+btnClose = uicontrol('Parent',CD, 'Position',[350+xOffset, 10, 210, 25], 'String','Run the Build Scripts now', 'HorizontalAlignment', 'center', 'Callback',@cb_SetBuildState);
 
 % Wait for d to close before running to completion
 doAbort = true;
